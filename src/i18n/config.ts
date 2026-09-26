@@ -17,16 +17,21 @@ export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 export const LANGUAGE_STORAGE_KEY = "vinculo_language";
 
-function readStoredLanguage(): SupportedLanguage {
-  try {
-    const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    if (saved && (SUPPORTED_LANGUAGES as readonly string[]).includes(saved)) {
-      return saved as SupportedLanguage;
-    }
-  } catch {
-    /* localStorage blocked or unavailable */
+/** Map a raw storage value to a supported locale. Unknown values use Spanish. */
+export function resolveStoredLanguage(raw: string | null): SupportedLanguage {
+  if (raw && (SUPPORTED_LANGUAGES as readonly string[]).includes(raw)) {
+    return raw as SupportedLanguage;
   }
   return DEFAULT_LANGUAGE;
+}
+
+function readStoredLanguage(): SupportedLanguage {
+  try {
+    return resolveStoredLanguage(localStorage.getItem(LANGUAGE_STORAGE_KEY));
+  } catch {
+    /* localStorage blocked or unavailable */
+    return DEFAULT_LANGUAGE;
+  }
 }
 
 const initialLang = readStoredLanguage();

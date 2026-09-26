@@ -19,6 +19,7 @@ npm run test:e2e -- e2e/wallet-onboarding-deposit.spec.ts
 ## What is covered / not covered
 
 - **Covered:** finish `/bienvenida`, land on home, open the deposit method modal.
+- **Also:** `e2e/locale-and-overflow.spec.ts` checks that the saved language survives reload and a new tab, that an invalid stored value falls back to Spanish, and that login, onboarding, and home do not scroll horizontally at 375×812 in English.
 - **Not covered:** Freighter/Privy UI, on-chain signing, SPEI transfer.
 
 ## Fixtures
