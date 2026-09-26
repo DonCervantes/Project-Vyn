@@ -9,15 +9,6 @@ Project Vyn is a Vite + React application backed by Stellar/Soroban contract cal
 3. Install dependencies with `npm install`.
 4. Start the app with `npm run dev`.
 
-### E2E tests
-
-See [docs/e2e.md](docs/e2e.md). Quick start:
-
-```bash
-npx playwright install chromium
-npm run test:e2e
-```
-
 ## Run Locally From Scratch
 
 Use this flow if you are a new contributor and want to reproduce the app on your machine:

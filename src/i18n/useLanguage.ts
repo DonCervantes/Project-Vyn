@@ -1,48 +1,23 @@
 /**
  * useLanguage — thin wrapper around i18next for language switching.
- *
- * Usage:
- *   const { language, changeLanguage, supportedLanguages } = useLanguage();
- *
- * To add a new locale:
- *   1. Create src/i18n/locales/<lang>.ts
- *   2. Register it in src/i18n/config.ts
- *   3. Add the lang code to SUPPORTED_LANGUAGES in constants.ts
- *   — changeLanguage() will work automatically.
- *
- * Persistence: changeLanguage writes via sessionStore (localStorage + cookie).
- * Other tabs pick up the change through the `storage` event.
+ * Persists the choice to localStorage so reloads and new tabs reuse it (#70).
  */
 
-import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { SUPPORTED_LANGUAGES, LANGUAGE_STORAGE_KEY, type SupportedLanguage } from "./constants";
-import { persistLanguage, resolveStoredLanguage } from "./localeStorage";
+import { SUPPORTED_LANGUAGES, LANGUAGE_STORAGE_KEY, type SupportedLanguage } from "./config";
 
 export function useLanguage() {
   const { i18n } = useTranslation();
 
-  // Keep open tabs in sync when another tab changes the locale.
-  useEffect(() => {
-    const onStorage = (event: StorageEvent) => {
-      if (event.key !== LANGUAGE_STORAGE_KEY) return;
-      const next = resolveStoredLanguage(event.newValue);
-      if (next !== i18n.language) {
-        void i18n.changeLanguage(next);
-      }
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, [i18n]);
-
   return {
-    /** Current active language code, e.g. "es" */
-    language: (i18n.language?.split("-")[0] ?? i18n.language) as SupportedLanguage,
-    /** All supported language codes */
+    language: i18n.language as SupportedLanguage,
     supportedLanguages: SUPPORTED_LANGUAGES,
-    /** Switch the active language (persisted). Resolves when resources are loaded. */
     changeLanguage: (lang: SupportedLanguage) => {
-      persistLanguage(lang);
+      try {
+        localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+      } catch {
+        /* localStorage blocked — language still switches for this session */
+      }
       return i18n.changeLanguage(lang);
     },
   };

@@ -1,39 +1,35 @@
 /**
  * i18n configuration
  *
- * - Default language: Spanish (es)
- * - Fallback language: Spanish (es)
- * - Namespace: "translation" (single namespace, flat structure)
- * - Missing key behavior: returns the key itself so nothing silently breaks
- * - Selected locale is restored from sessionStore before the first render
- *
- * To add a new locale:
- *   1. Create src/i18n/locales/<lang>.ts mirroring the es.ts shape
- *   2. Import it here and add it to the `resources` map
- *   3. Update SUPPORTED_LANGUAGES in constants.ts
+ * - Default / fallback language: Spanish (es)
+ * - Selected locale is restored from localStorage before first render (#70)
+ * - Invalid stored values fall back to DEFAULT_LANGUAGE
  */
 
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import es from "./locales/es";
 import en from "./locales/en";
-import {
-  DEFAULT_LANGUAGE,
-  SUPPORTED_LANGUAGES,
-} from "./constants";
-import {
-  resolveStoredLanguage,
-  syncDocumentLanguage,
-} from "./localeStorage";
 
-export {
-  DEFAULT_LANGUAGE,
-  LANGUAGE_STORAGE_KEY,
-  SUPPORTED_LANGUAGES,
-  type SupportedLanguage,
-} from "./constants";
+export const DEFAULT_LANGUAGE = "es";
+export const SUPPORTED_LANGUAGES = ["es", "en"] as const;
+export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
-const initialLang = resolveStoredLanguage();
+export const LANGUAGE_STORAGE_KEY = "vinculo_language";
+
+function readStoredLanguage(): SupportedLanguage {
+  try {
+    const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (saved && (SUPPORTED_LANGUAGES as readonly string[]).includes(saved)) {
+      return saved as SupportedLanguage;
+    }
+  } catch {
+    /* localStorage blocked or unavailable */
+  }
+  return DEFAULT_LANGUAGE;
+}
+
+const initialLang = readStoredLanguage();
 
 i18n.use(initReactI18next).init({
   resources: {
@@ -45,15 +41,10 @@ i18n.use(initReactI18next).init({
   supportedLngs: [...SUPPORTED_LANGUAGES],
 
   interpolation: {
-    // React already escapes values — no need for i18next to do it too
     escapeValue: false,
   },
 
-  // Return the key path when a translation is missing so nothing silently breaks
   parseMissingKeyHandler: (key) => key,
 });
-
-syncDocumentLanguage(initialLang);
-i18n.on("languageChanged", syncDocumentLanguage);
 
 export default i18n;

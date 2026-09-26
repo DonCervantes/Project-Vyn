@@ -1,45 +1,31 @@
 /**
- * E2E helpers — deterministic wallet session seeding.
+ * E2E helpers — deterministic wallet session seeding for #49.
  *
- * The app loads the wallet session once from sessionStore (localStorage + cookie).
- * Seeding these keys before the first navigation lets tests skip Freighter/Privy
- * and still exercise RequireWallet / RequireOnboarding / DepositModal.
- *
- * Important: sessionStore falls back to cookies when localStorage is empty, so
- * helpers must clear (or set) both stores together.
+ * sessionStore falls back to cookies when localStorage is empty, so seeds
+ * must set or clear both stores together.
  */
 
 import type { Page } from "@playwright/test";
 
-/** Deterministic fake Stellar public key used across E2E fixtures. */
 export const E2E_WALLET =
   "GBUQWP3BOUZX34GTHWEQ2RKCVFJCFZWYY5JWXLRJVZGQXY2USRY5JK4F";
 
 export const WALLET_KEY = "vinculo_wallet";
 export const ONBOARDED_KEY = "vinculo_onboarded";
 export const PROVIDER_KEY = "vinculo_wallet_provider";
-export const LANGUAGE_KEY = "vinculo_language";
 
 export type SeedSessionOptions = {
-  /** When false, the user still needs to finish /bienvenida. Default true. */
   onboarded?: boolean;
-  /**
-   * Locale to seed. Pass `null` to leave vinculo_language untouched
-   * (needed for persistence tests that must survive reload).
-   * Default: "es".
-   */
-  language?: "es" | "en" | null;
 };
 
-/** Seed session storage before the app bootstraps (addInitScript). */
 export async function seedWalletSession(
   page: Page,
   options: SeedSessionOptions = {}
 ): Promise<void> {
-  const { onboarded = true, language = "es" } = options;
+  const { onboarded = true } = options;
 
   await page.addInitScript(
-    ({ wallet, onboarded, language, WALLET_KEY, ONBOARDED_KEY, PROVIDER_KEY, LANGUAGE_KEY }) => {
+    ({ wallet, onboarded, WALLET_KEY, ONBOARDED_KEY, PROVIDER_KEY }) => {
       const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
       const setStore = (key: string, value: string) => {
         try {
@@ -67,23 +53,17 @@ export async function seedWalletSession(
       } else {
         removeStore(ONBOARDED_KEY);
       }
-      if (language !== null) {
-        setStore(LANGUAGE_KEY, language);
-      }
     },
     {
       wallet: E2E_WALLET,
       onboarded,
-      language,
       WALLET_KEY,
       ONBOARDED_KEY,
       PROVIDER_KEY,
-      LANGUAGE_KEY,
     }
   );
 }
 
-/** Stub noisy APIs so the home dashboard does not hang without a backend. */
 export async function stubCreditApi(page: Page): Promise<void> {
   const ok = {
     status: 200,
