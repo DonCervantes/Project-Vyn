@@ -180,8 +180,8 @@ const DepositModal = ({ open, onClose }: Props) => {
         {/* MÉTODO: elegir depositar con wallet o por SPEI */}
         {step === "method" && (
           <>
-            <h2 className="text-xl font-bold text-foreground mb-1">{t("deposit.method_title")}</h2>
-            <p className="text-sm text-muted-foreground mb-6">{t("deposit.method_subtitle")}</p>
+            <h2 className="text-xl font-bold text-foreground mb-1 pr-8 break-words" data-testid="deposit-method-title">{t("deposit.method_title")}</h2>
+            <p className="text-sm text-muted-foreground mb-6 break-words">{t("deposit.method_subtitle")}</p>
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => setStep("input")}

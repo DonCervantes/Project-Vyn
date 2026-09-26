@@ -42,10 +42,11 @@ const Index = () => {
           <BalanceCard />
           <button
             onClick={() => setDepositOpen(true)}
-            className="btn-emerald w-full flex items-center justify-center gap-2 py-4 text-base font-bold shadow-lg shadow-emerald-500/10"
+            data-testid="open-deposit"
+            className="btn-emerald w-full flex items-center justify-center gap-2 py-4 px-3 text-base font-bold shadow-lg shadow-emerald-500/10 whitespace-normal text-center"
           >
-            <Plus className="w-5 h-5" />
-            {t("home.deposit_button")}
+            <Plus className="w-5 h-5 shrink-0" />
+            <span className="min-w-0 break-words">{t("home.deposit_button")}</span>
           </button>
           <ProgressRing />
           <YieldCard />

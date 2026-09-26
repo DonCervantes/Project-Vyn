@@ -113,7 +113,7 @@ const AppShell = ({ title, subtitle, children }: AppShellProps) => {
 
           <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
             <ThemeToggle />
-            <div className="hidden sm:block"><LanguageToggle /></div>
+            <LanguageToggle />
 
             <button
               onClick={() => navigate("/notificaciones")}

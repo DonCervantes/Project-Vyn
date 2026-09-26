@@ -7,24 +7,42 @@
  * To add a new locale:
  *   1. Create src/i18n/locales/<lang>.ts
  *   2. Register it in src/i18n/config.ts
- *   3. Add the lang code to SUPPORTED_LANGUAGES in config.ts
+ *   3. Add the lang code to SUPPORTED_LANGUAGES in constants.ts
  *   — changeLanguage() will work automatically.
+ *
+ * Persistence: changeLanguage writes via sessionStore (localStorage + cookie).
+ * Other tabs pick up the change through the `storage` event.
  */
 
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { SUPPORTED_LANGUAGES, LANGUAGE_STORAGE_KEY, type SupportedLanguage } from "./config";
+import { SUPPORTED_LANGUAGES, LANGUAGE_STORAGE_KEY, type SupportedLanguage } from "./constants";
+import { persistLanguage, resolveStoredLanguage } from "./localeStorage";
 
 export function useLanguage() {
   const { i18n } = useTranslation();
 
+  // Keep open tabs in sync when another tab changes the locale.
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== LANGUAGE_STORAGE_KEY) return;
+      const next = resolveStoredLanguage(event.newValue);
+      if (next !== i18n.language) {
+        void i18n.changeLanguage(next);
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [i18n]);
+
   return {
     /** Current active language code, e.g. "es" */
-    language: i18n.language as SupportedLanguage,
+    language: (i18n.language?.split("-")[0] ?? i18n.language) as SupportedLanguage,
     /** All supported language codes */
     supportedLanguages: SUPPORTED_LANGUAGES,
-    /** Switch the active language (persisted to localStorage). Resolves when resources are loaded. */
+    /** Switch the active language (persisted). Resolves when resources are loaded. */
     changeLanguage: (lang: SupportedLanguage) => {
-      localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+      persistLanguage(lang);
       return i18n.changeLanguage(lang);
     },
   };
